@@ -1,0 +1,32 @@
+name: example
+description: "A new Flutter project."
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.2.2 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.2
+  dio: ^5.4.0
+  json_annotation: ^4.8.1
+  rest_api_annotation:
+    git: https://github.com/mahmood1996/rest_api_annotation.git
+  exceptions:
+    git: https://github.com/mahmood1996/exceptions.git
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^2.0.0
+  nock: ^1.2.3
+  build_runner: ^2.4.8
+  json_serializable: ^6.7.1
+  rest_api_generator:
+    path: ../
+
+flutter:
+  uses-material-design: true

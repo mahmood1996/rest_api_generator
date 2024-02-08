@@ -1,0 +1,18 @@
+(Done) throws "The source annotation should be set!" when not annotating classes.
+(Done) throws "'RestApi' only support classes" when annotating functions or variables.
+(Done) generate mixin with name of the class prefixed with _$.
+(Done) generate _$setHttpClientInstance(Dio dio).
+(Done) generate only for function annotated with @Request(...)
+(Done) api call with none parameters and primitive return.
+(Done) api call with none parameters and composable return.
+(Done) @Path().
+(Done) throws "Request annotation only support methods that return [void, Future, and FutureOr]".
+(Done) @QueryParameter(key). (int, double, String, bool, List, Map, Set)
+(Done) @QueryParametersGroup() nonDartDefinedType.
+(Done) baseUrl from Request.
+(Done) @Field(key). (int, double, String, bool, List, Map, Set)
+(Done) @Body() nonDartDefinedType.
+(Done) @Header(key) (int, double, String, bool, List, Map, Set)
+(Done) headers from @Request.
+(Done) onSuccessfulResponse.
+- onFailedResponse.
