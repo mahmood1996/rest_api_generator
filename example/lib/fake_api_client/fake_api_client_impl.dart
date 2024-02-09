@@ -17,6 +17,15 @@ final class FakeAPIClientImpl
   }
 
   @override
-  @Request(method: 'GET', path: '/data')
+  @Request(
+    method: 'GET',
+    path: '/data',
+    onFailedResponse: _onFailedResponse,
+  )
   Future<Map<String, dynamic>> getData();
+
+  static Future<Map<String, dynamic>> _onFailedResponse(Response response) {
+    if (response.statusCode == 500) throw Exception(response.data.toString());
+    throw ServerException(message: response.data.toString());
+  }
 }

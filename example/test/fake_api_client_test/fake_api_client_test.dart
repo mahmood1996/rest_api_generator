@@ -50,4 +50,13 @@ void main() {
       throwsA(predicate<ServerException>((e) => e.message == 'error')),
     );
   });
+
+  test('onFailedResponse', () async {
+    nock(instance.options.baseUrl).get('/data').reply(500, 'error');
+
+    expect(
+      () async => await fakeAPIClient.getData(),
+      throwsA(isA<Exception>()),
+    );
+  });
 }

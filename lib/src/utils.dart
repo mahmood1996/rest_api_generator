@@ -81,4 +81,14 @@ abstract final class Utils {
         type.isDartCoreSymbol ||
         type is DynamicType;
   }
+
+  static String getFunctionReferenceAsString(ExecutableElement element) {
+    return (StringBuffer()
+          ..writeAll([
+            if (element.enclosingElement is ClassElement)
+              '${element.enclosingElement.displayName}.',
+            element.displayName,
+          ]))
+        .toString();
+  }
 }

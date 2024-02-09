@@ -27,10 +27,6 @@ FutureOr<dynamic> _onSuccessfulResponse(Response response) {
   return Product.fromJson(response.data);
 }
 
-FutureOr<void> _onFailedResponse(Response response) {
-  throw Exception();
-}
-
 @ShouldGenerate(
   'mixin _\$GenerateMixinWithImplMixin {\n'
   '  late final Dio _dio;\n'
@@ -183,7 +179,7 @@ FutureOr<void> _onFailedResponse(Response response) {
   '    } on DioException catch (exception) {\n'
   '      return _onDioException(\n'
   '        exception: exception,\n'
-  '        onFailedResponse: _onFailedResponse,\n'
+  '        onFailedResponse: GenerateMixinWithImpl._onFailedResponse,\n'
   '      );\n'
   '    }\n'
   '  }\n'
@@ -279,6 +275,10 @@ abstract class GenerateMixinWithImpl {
     onFailedResponse: _onFailedResponse,
   )
   Future<void> testOnFailedResponse();
+
+  static FutureOr<void> _onFailedResponse(Response response) {
+    throw Exception();
+  }
 }
 
 @ShouldThrow(

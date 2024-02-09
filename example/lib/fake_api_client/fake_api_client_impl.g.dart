@@ -23,7 +23,10 @@ mixin _$FakeAPIClientImplMixin {
       ));
       return response.data;
     } on DioException catch (exception) {
-      return _onDioException(exception: exception);
+      return _onDioException(
+        exception: exception,
+        onFailedResponse: FakeAPIClientImpl._onFailedResponse,
+      );
     }
   }
 

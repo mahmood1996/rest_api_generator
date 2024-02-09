@@ -63,7 +63,12 @@ final class SingleMethodCodeGenerator implements CodeGenerator<MethodElement> {
             ?.toFunctionValue();
 
     if (onSuccessfulResponse != null) {
-      return 'return await ${onSuccessfulResponse.displayName}(response);';
+      return (StringBuffer()
+            ..writeAll([
+              'return await ',
+              '${Utils.getFunctionReferenceAsString(onSuccessfulResponse)}(response);',
+            ]))
+          .toString();
     }
 
     return switch ((element.returnType as InterfaceType)
@@ -86,8 +91,7 @@ final class SingleMethodCodeGenerator implements CodeGenerator<MethodElement> {
     buffer.writeAll([
       'return _onDioException(exception: exception',
       if (onFailedResponse != null) ...[
-        ',\n',
-        'onFailedResponse: ${onFailedResponse.displayName},\n',
+        ',\nonFailedResponse: ${Utils.getFunctionReferenceAsString(onFailedResponse)},\n',
       ],
       ')',
     ]);
