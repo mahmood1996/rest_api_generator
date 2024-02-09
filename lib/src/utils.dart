@@ -33,9 +33,8 @@ abstract final class Utils {
   static Iterable<Element> getElementsAnnotatedWith<AnnotationType>(
     Iterable<Element> elements,
   ) {
-    return elements.where((e) => (e.metadata
-        .map((e) => e.element!.displayName)
-        .contains('$AnnotationType')));
+    return elements.where((e) => TypeChecker.fromRuntime(AnnotationType)
+        .hasAnnotationOf(e, throwOnUnresolved: false));
   }
 
   static DartObject? getFieldOfAnnotation<AnnotationType>(
