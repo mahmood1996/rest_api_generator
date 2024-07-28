@@ -1,12 +1,35 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:rest_api_annotation/rest_api_annotation.dart';
-import 'package:rest_api_generator/src/utils.dart';
 import 'package:source_gen/source_gen.dart';
 
-import 'code_generator.dart';
+import '../../utils/utils.dart';
+import '../code_generator.dart';
+import 'element_json_mapping_code_generator.dart';
+import 'request_body_code_generator.dart';
+import 'request_headers_code_generator.dart';
+import 'request_query_parameters_code_generator.dart';
 
-final class SingleMethodCodeGenerator implements CodeGenerator<MethodElement> {
+final class SingleRequestFunctionCodeGenerator
+    implements CodeGenerator<MethodElement> {
+  SingleRequestFunctionCodeGenerator() {
+    _elementJsonMappingCodeGen = ElementJsonMappingCodeGenerator();
+    _requestBodyCodeGen = RequestBodyCodeGenerator(
+      elementJsonMappingCodeGen: _elementJsonMappingCodeGen,
+    );
+    _requestHeadersCodeGen = RequestHeadersCodeGenerator(
+      elementJsonMappingCodeGen: _elementJsonMappingCodeGen,
+    );
+    _requestQueryParamsCodeGen = RequestQueryParametersCodeGenerator(
+      elementJsonMappingCodeGen: _elementJsonMappingCodeGen,
+    );
+  }
+
+  late final CodeGenerator<MethodElement> _requestBodyCodeGen;
+  late final CodeGenerator<MethodElement> _requestHeadersCodeGen;
+  late final CodeGenerator<MethodElement> _requestQueryParamsCodeGen;
+  late final CodeGenerator<VariableElement> _elementJsonMappingCodeGen;
+
   @override
   String generateFor(MethodElement element) {
     return (StringBuffer()
@@ -31,12 +54,12 @@ final class SingleMethodCodeGenerator implements CodeGenerator<MethodElement> {
             'async {\n',
             'try {\n',
             '${canReturnValue ? 'var response = ' : ''}await _dio.fetch(RequestOptions(\n',
-            'method: \'${_buildRequestMethod(element)}\',\n',
+            'method: \'${_buildRequestType(element)}\',\n',
             'path: \'${_buildRequestPath(element)}\',\n',
-            'data: ${_buildRequestBody(element)},\n',
+            'data: ${_requestBodyCodeGen.generateFor(element)},\n',
             'baseUrl: ${_buildRequestBaseUrl(element)},\n',
-            'headers: ${_buildRequestHeaders(element)},\n',
-            'queryParameters: ${_buildRequestQueryParameters(element)},\n',
+            'headers: ${_requestHeadersCodeGen.generateFor(element)},\n',
+            'queryParameters: ${_requestQueryParamsCodeGen.generateFor(element)},\n',
             '));\n',
             if (canReturnValue) '${_buildMethodReturn(element)}\n',
             '} on DioException catch(exception) {\n',
@@ -108,7 +131,7 @@ final class SingleMethodCodeGenerator implements CodeGenerator<MethodElement> {
     };
   }
 
-  String _buildRequestMethod(MethodElement element) {
+  String _buildRequestType(MethodElement element) {
     final requestAnnotation = Utils.getFirstAnnotationOf<Request>(element)!;
 
     return requestAnnotation.getField('method')?.toStringValue() ?? '';
@@ -128,106 +151,5 @@ final class SingleMethodCodeGenerator implements CodeGenerator<MethodElement> {
     }
 
     return requestPath;
-  }
-
-  String _buildRequestBody(MethodElement element) {
-    _validateParamsAnnotatedWith<Body>(element);
-
-    final paramsAnnotatedWithField =
-        _createJsonModelFor<Field>(element.declaration);
-
-    final paramsAnnotatedWithBody =
-        Utils.getElementsAnnotatedWith<Body>(element.declaration.children);
-
-    if (paramsAnnotatedWithBody.isEmpty && paramsAnnotatedWithField.isEmpty) {
-      return 'null';
-    }
-
-    return (StringBuffer()
-          ..writeAll([
-            'Map.from($paramsAnnotatedWithField)',
-            ...paramsAnnotatedWithBody
-                .map((e) => '..addAll(${e.displayName}.toJson())'),
-          ]))
-        .toString();
-  }
-
-  String _buildRequestHeaders(MethodElement element) {
-    var headersFromRequest = _getHeadersFromRequestAnnotationOn(element);
-    var paramsAnnotatedWithHeader =
-        _createJsonModelFor<Header>(element.declaration);
-
-    return (StringBuffer()
-          ..writeAll([
-            'Map.from(_dio.options.headers)',
-            if (headersFromRequest.isNotEmpty) '..addAll($headersFromRequest)',
-            if (paramsAnnotatedWithHeader.isNotEmpty)
-              '..addAll(${_createJsonModelFor<Header>(element.declaration)})',
-          ]))
-        .toString();
-  }
-
-  Map<String, dynamic> _getHeadersFromRequestAnnotationOn(
-    MethodElement element,
-  ) {
-    return {
-      for (var e in Utils.getFieldOfAnnotation<Request>(element, 'headers')!
-          .toMapValue()!
-          .entries)
-        Utils.getLiteralValueFrom(e.key): Utils.getLiteralValueFrom(e.value),
-    };
-  }
-
-  String _buildRequestQueryParameters(MethodElement element) {
-    _validateParamsAnnotatedWith<QueryParametersGroup>(element);
-    final queryParameters =
-        _createJsonModelFor<QueryParameter>(element.declaration);
-
-    final codeBuffer = StringBuffer();
-    codeBuffer.writeAll([
-      'Map.from(_dio.options.queryParameters)',
-      if (queryParameters.isNotEmpty) '..addAll($queryParameters)',
-      ...Utils.getElementsAnnotatedWith<QueryParametersGroup>(
-        element.declaration.children,
-      )
-          .whereType<VariableElement>()
-          .map((e) => '..addAll(${e.displayName}.toJson())'),
-    ]);
-    return codeBuffer.toString();
-  }
-
-  void _validateParamsAnnotatedWith<AnnotationType>(MethodElement element) {
-    if (Utils.getElementsAnnotatedWith<AnnotationType>(
-            element.declaration.children)
-        .whereType<VariableElement>()
-        .map((e) => e.type)
-        .any(Utils.isDartDefinedType)) {
-      throw InvalidGenerationSource(
-        "$AnnotationType() only support objects that have .toJson() method!",
-        element: element,
-      );
-    }
-  }
-
-  Map<String, String> _createJsonModelFor<AnnotationType>(Element element,
-      [String annotationKeyName = 'key']) {
-    return Map.fromEntries(
-      Utils.getElementsAnnotatedWith<AnnotationType>(element.children)
-          .whereType<VariableElement>()
-          .map(
-        (e) {
-          final entryKey =
-              Utils.getFieldOfAnnotation<AnnotationType>(e, annotationKeyName)!
-                  .toStringValue()!;
-          return MapEntry(
-            '\'$entryKey\'',
-            switch (Utils.isDartDefinedType(e.type)) {
-              (true) => e.displayName,
-              (false) => '${e.displayName}.toJson()'
-            },
-          );
-        },
-      ),
-    );
   }
 }

@@ -1,11 +1,12 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:rest_api_annotation/rest_api_annotation.dart';
-import 'package:rest_api_generator/src/utils.dart';
+import 'package:rest_api_generator/src/utils/utils.dart';
 
 import 'code_generator.dart';
 
-final class MethodsImplCodeGenerator implements CodeGenerator<ClassElement> {
-  MethodsImplCodeGenerator(this._methodCodeGenerator);
+final class RequestFunctionsCodeGenerator
+    implements CodeGenerator<ClassElement> {
+  RequestFunctionsCodeGenerator(this._methodCodeGenerator);
 
   final CodeGenerator<MethodElement> _methodCodeGenerator;
 

@@ -27,6 +27,10 @@ FutureOr<dynamic> _onSuccessfulResponse(Response response) {
   return Product.fromJson(response.data);
 }
 
+dynamic _encodeProduct(Product product) {
+  return product.toJson();
+}
+
 @ShouldGenerate(
   'mixin _\$GenerateMixinWithImplMixin {\n'
   '  late final Dio _dio;\n'
@@ -112,12 +116,15 @@ FutureOr<dynamic> _onSuccessfulResponse(Response response) {
   '    }\n'
   '  }\n'
   '\n'
-  '  Future<void> testBodyAndFields(int id, Product p1, Product p2) async {\n'
+  '  Future<void> testBodyAndFields(\n'
+  '      int id, Product p1, Product p3, Product p2) async {\n'
   '    try {\n'
   '      await _dio.fetch(RequestOptions(\n'
   '        method: \'POST\',\n'
   '        path: \'/api\',\n'
-  '        data: Map.from({\'key\': id, \'key2\': p1.toJson()})..addAll(p2.toJson()),\n'
+  '        data: Map.from(\n'
+  '            {\'key\': id, \'key2\': p1.toJson(), \'key3\': _encodeProduct(p3)})\n'
+  '          ..addAll(p2.toJson()),\n'
   '        baseUrl: _dio.options.baseUrl,\n'
   '        headers: Map.from(_dio.options.headers),\n'
   '        queryParameters: Map.from(_dio.options.queryParameters),\n'
@@ -243,6 +250,7 @@ abstract class GenerateMixinWithImpl {
   Future<void> testBodyAndFields(
     @Field('key') int id,
     @Field('key2') Product p1,
+    @Field('key3', encode: _encodeProduct) Product p3,
     @Body() Product p2,
   );
 
@@ -317,3 +325,21 @@ abstract class APrimitiveTypeAnnotatedWithBody {
   )
   Future<void> aPrimitiveTypeAnnotatedWithBody(@Body() int i);
 }
+
+// Future<void> testBodyAndFields(
+//     int id, Product p1, Product p2, Product p3) async {
+//   try {
+//     await _dio.fetch(RequestOptions(
+//       method: 'POST',
+//       path: '/api',
+//       data:
+//           Map.from({'key': id, 'key2': p1.toJson(), 'key3': _encodeProduct(p3)})
+//             ..addAll(p2.toJson()),
+//       baseUrl: _dio.options.baseUrl,
+//       headers: Map.from(_dio.options.headers),
+//       queryParameters: Map.from(_dio.options.queryParameters),
+//     ));
+//   } on DioException catch (exception) {
+//     return _onDioException(exception: exception);
+//   }
+// }

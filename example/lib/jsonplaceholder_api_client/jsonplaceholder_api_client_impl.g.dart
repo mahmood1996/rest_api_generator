@@ -1,32 +1,30 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'fake_api_client_impl.dart';
+part of 'jsonplaceholder_api_client_impl.dart';
 
 // **************************************************************************
 // RestApiGenerator
 // **************************************************************************
 
-mixin _$FakeAPIClientImplMixin {
+mixin _$JsonPlaceholderAPIClientImplMixin {
   late final Dio _dio;
 
   void _$setHttpClientInstance(Dio dio) => _dio = dio;
 
-  Future<Map<String, dynamic>> getData() async {
+  Future<List<Post>> getPosts({int? userId}) async {
     try {
       var response = await _dio.fetch(RequestOptions(
         method: 'GET',
-        path: '/data',
+        path: '/posts',
         data: null,
         baseUrl: _dio.options.baseUrl,
         headers: Map.from(_dio.options.headers),
-        queryParameters: Map.from(_dio.options.queryParameters),
+        queryParameters: Map.from(_dio.options.queryParameters)
+          ..addAll({'userId': userId}),
       ));
-      return response.data;
+      return await JsonPlaceholderAPIClientImpl._onSuccessfulResponse(response);
     } on DioException catch (exception) {
-      return _onDioException(
-        exception: exception,
-        onFailedResponse: FakeAPIClientImpl._onFailedResponse,
-      );
+      return _onDioException(exception: exception);
     }
   }
 

@@ -15,4 +15,6 @@
 (Done) @Header(key) (int, double, String, bool, List, Map, Set)
 (Done) headers from @Request.
 (Done) onSuccessfulResponse.
-- onFailedResponse.
+(Done) onFailedResponse.
+(Done) typedef encode<ValueType> = dynamic Function(ValueType value)
+(Done) @Field(key, encode?)
